@@ -3,9 +3,16 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const SpotifyWebApi = require('spotify-web-api-node');
+const redis = require('redis');
 
 const app = express();
 const port = 3001;
+
+// Create a Redis client
+const redisClient = redis.createClient({
+    url: 'redis://localhost:6379' // Adjust this if your Redis configuration is different
+});
+redisClient.connect();
 
 // Middleware
 app.use(cors());
@@ -19,24 +26,39 @@ const spotifyApi = new SpotifyWebApi({
 
 // Redirect to Spotify login
 app.get('/login', (req, res) => {
-    const scopes = ['user-top-read'];
+    const scopes = ['user-top-read', 'user-read-private'];
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
-// Callback endpoint for Spotify to redirect to
-app.post('/callback', (req, res) => {
+// Spotify callback endpoint
+app.post('/callback', async (req, res) => {
     const { code } = req.body;
-    spotifyApi.authorizationCodeGrant(code)
-        .then(data => {
-            const { access_token } = data.body;
-            res.json({ accessToken: access_token });
-        })
-        .catch(err => {
-            console.error('Error getting Tokens:', err);
-            res.sendStatus(500);
-        });
+    try {
+        const data = await spotifyApi.authorizationCodeGrant(code);
+        const { access_token } = data.body;
+        spotifyApi.setAccessToken(data.body["access_token"]);
+        spotifyApi.setRefreshToken(data.body["refresh_token"])
+        res.json({ accessToken: access_token});
+    } catch (err) {
+        console.error('Error in Spotify authentication:', err);
+        res.sendStatus(500);
+    }
 });
 
+// Endpoint to store tracks in Redis
+app.post('/store-tracks', async (req, res) => {
+    const { tracks, userId } = req.body;
+    try {
+        const key = `user:${userId}:topTracks`; // Unique key for each user
+        await redisClient.set(key, JSON.stringify(tracks));
+        res.status(200).send('Tracks stored successfully');
+    } catch (err) {
+        console.error('Redis error:', err);
+        res.status(500).send('Failed to store tracks');
+    }
+});
+
+// Start the server
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
