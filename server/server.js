@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config()
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -23,9 +23,9 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const spotifyApi = new SpotifyWebApi({
-    clientId: "5e48a213c83748dab5411b7c481d54dd",
-    clientSecret: "d0f380c24c584f889650cb7953b2ceed",
-    redirectUri: "http://localhost:3000",
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    redirectUri: process.env.REDIRECT_URI
 });
 
 const userIds = new Set();
@@ -61,10 +61,15 @@ app.post('/callback', async (req, res) => {
 
 // Endpoint to store tracks in Redis
 app.post('/store-tracks', async (req, res) => {
-    const {tracks, userId} = req.body;
+    const { tracks, userId } = req.body;
     try {
-        const key = `user:${userId}:topTracks`; // Unique key for each user
-        await redisClient.set(key, JSON.stringify(tracks));
+        const key = `user:${userId}:topTracks`;
+        // Simplify tracks data before storing
+        const simplifiedTracks = tracks.map(track => ({
+            name: track.name,
+            artist: track.artists.join(", ")
+        }));
+        await redisClient.set(key, JSON.stringify(simplifiedTracks));
         res.status(200).send('Tracks stored successfully');
     } catch (err) {
         console.error('Redis error:', err);
@@ -115,6 +120,7 @@ app.get('/get-tracks/:userId', async (req, res) => {
         res.status(500).send('Failed to retrieve tracks');
     }
 });
+
 
 // Start the server
 app.listen(port, () => {

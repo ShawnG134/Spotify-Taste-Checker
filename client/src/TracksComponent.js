@@ -11,9 +11,14 @@ function TracksComponent() {
         try {
             const url = 'http://localhost:3001/user-ids';
             const response = await axios.get(url);
+            if (response.data.length === 1 ) {
+                throw new Error('There\'s only one user/no user');
+            } else if (response.data.length  === 0) {
+                throw new Error("There\'s no user logged in, please log in.")
+            }
             return response.data;
         } catch (err) {
-            setError('Failed to fetch user IDs');
+            setError(err.message);
             setLoading(false);
             return [];  // Return empty array on error to prevent further processing
         }
@@ -28,11 +33,12 @@ function TracksComponent() {
                 userId,
                 tracks: response.data.map(track => ({
                     ...track,
-                    artist: track.artists.map(artist => artist.name).join(', ')
+                    artist: track.artist
                 }))
             };
         } catch (err) {
             setError(`Failed to fetch tracks for user ${userId}`);
+            console.log(err);
             return null;  // Return null on error to handle it gracefully
         }
     };
@@ -53,28 +59,31 @@ function TracksComponent() {
         });
     }, []);
 
+    let displayContent;
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
+
+    if (Object.keys(userTracks).length > 0) {
+        displayContent = Object.entries(userTracks).map(([userId, tracks]) => (
+            <div key={userId}>
+                <h2>User: {userId}</h2>
+                <ul>
+                    {tracks.map((track, index) => (
+                        <li key={index}>
+                            {track.name} by {track.artist}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        ));
+    } else {
+        displayContent = <p>No tracks found.</p>;
+    }
 
     return (
         <div>
             <h1>Top Tracks by User</h1>
-            {Object.keys(userTracks).length > 0 ? (
-                Object.entries(userTracks).map(([userId, tracks]) => (
-                    <div key={userId}>
-                        <h2>User: {userId}</h2>
-                        <ul>
-                            {tracks.map((track, index) => (
-                                <li key={index}>
-                                    {track.name} by {track.artist}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))
-            ) : (
-                <p>No tracks found.</p>
-            )}
+            {displayContent}
         </div>
     );
 }

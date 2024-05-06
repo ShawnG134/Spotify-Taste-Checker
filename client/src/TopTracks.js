@@ -13,7 +13,12 @@ const TopTracks = ({ accessToken, userId }) => {
                     },
                 });
                 setTracks(data.items);
-                await storeTracksInRedis(data.items);
+                const simplifiedData = data.items.map(track => ({
+                    name: track.name,
+                    artists: track.artists.map(artist => artist.name) // Collect all artist names
+                }));
+                console.log(simplifiedData);
+                await storeTracksInRedis(simplifiedData);
             } catch (err) {
                 console.error('Error fetching top tracks:', err);
             }
@@ -36,16 +41,7 @@ const TopTracks = ({ accessToken, userId }) => {
     }, [accessToken, userId]); // Dependency array includes userId
 
     return (
-        <div>
-            <h2>Top Played Songs</h2>
-            <ul>
-                {tracks.map((track, index) => (
-                    <li key={index}>
-                        {track.name} by {track.artists.map(artist => artist.name).join(", ")}
-                    </li>
-                ))}
-            </ul>
-        </div>
+        []
     );
 };
 
