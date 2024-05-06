@@ -1,29 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import * as redis from "redis";
 
-const redisClient = redis.createClient({
-    url: 'redis://localhost:6379' // This should match your Redis server URL
-});
-redisClient.connect();
-
-const TopTracks = ({ accessToken }) => {
+const TopTracks = ({ accessToken, userId }) => {
     const [tracks, setTracks] = useState([]);
 
     useEffect(() => {
         const fetchTopTracks = async () => {
-            const { data } = await axios.get('https://api.spotify.com/v1/me/top/tracks', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            });
-            setTracks(data.items);
+            try {
+                const { data } = await axios.get('https://api.spotify.com/v1/me/top/tracks?limit=50', {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                setTracks(data.items);
+                await storeTracksInRedis(data.items);
+            } catch (err) {
+                console.error('Error fetching top tracks:', err);
+            }
         };
 
-        if (accessToken) {
-            fetchTopTracks().catch(err => console.error('Error fetching top tracks:', err));
+        const storeTracksInRedis = async (tracks) => {
+            try {
+                await axios.post('http://localhost:3001/store-tracks', {
+                    tracks,
+                    userId
+                });
+            } catch (err) {
+                console.error('Error sending tracks to Redis:', err);
+            }
+        };
+
+        if (accessToken && userId) {
+            fetchTopTracks();
         }
-    }, [accessToken]);
+    }, [accessToken, userId]); // Dependency array includes userId
 
     return (
         <div>
