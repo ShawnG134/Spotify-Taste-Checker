@@ -28,6 +28,7 @@ const spotifyApi = new SpotifyWebApi({
     redirectUri: "http://localhost:3000",
 });
 
+const userIds = new Set();
 // Redirect to Spotify login
 app.get('/login', (req, res) => {
     const scopes = ['user-top-read', 'user-read-private'];
@@ -49,6 +50,7 @@ app.post('/callback', async (req, res) => {
         const userId = userInfo.body.id; // Unique user identifier
         console.log(userId)
         console.log(userInfo)
+        userIds.add(userId);
         // Respond with access token and user ID
         res.json({accessToken: access_token, userId: userId});
     } catch (err) {
@@ -59,6 +61,19 @@ app.post('/callback', async (req, res) => {
 
 // Endpoint to store tracks in Redis
 app.post('/store-tracks', async (req, res) => {
+    const {tracks, userId} = req.body;
+    try {
+        const key = `user:${userId}:topTracks`; // Unique key for each user
+        await redisClient.set(key, JSON.stringify(tracks));
+        res.status(200).send('Tracks stored successfully');
+    } catch (err) {
+        console.error('Redis error:', err);
+        res.status(500).send('Failed to store tracks');
+    }
+});
+
+// Endpoint to store both users
+app.post('/store-users', async (req, res) => {
     const {tracks, userId} = req.body;
     try {
         const key = `user:${userId}:topTracks`; // Unique key for each user
@@ -104,4 +119,10 @@ app.get('/get-tracks/:userId', async (req, res) => {
 // Start the server
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
+});
+
+app.get('/user-ids', (req, res) => {
+    // Convert the Set to an Array to send as JSON
+    const userIdArray = Array.from(userIds);
+    res.json(userIdArray);
 });
