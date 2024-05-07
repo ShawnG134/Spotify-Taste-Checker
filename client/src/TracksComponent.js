@@ -7,6 +7,7 @@ function TracksComponent() {
     const [userTracks, setUserTracks] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    // Please
     const openai = new OpenAI({ apiKey: process.env.REACT_APP_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
 
     // Fetch user IDs from the backend
@@ -53,7 +54,6 @@ function TracksComponent() {
                 model: "gpt-3.5-turbo",
             });
             return completion.choices[0].message.content;
-            // return "This is a test";
         } catch (err) {
             setError("Error analyzing music tastes with ChatGPT.");
             console.log(err);

@@ -29,6 +29,8 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 const userIds = new Set();
+
+
 // Redirect to Spotify login
 app.get('/login', (req, res) => {
     const scopes = ['user-top-read', 'user-read-private'];
@@ -40,6 +42,7 @@ app.get('/login', (req, res) => {
 app.post('/callback', async (req, res) => {
     const {code} = req.body;
     try {
+        console.log("userId");
         const data = await spotifyApi.authorizationCodeGrant(code);
         const {access_token} = data.body;
         spotifyApi.setAccessToken(data.body["access_token"]);
@@ -47,9 +50,7 @@ app.post('/callback', async (req, res) => {
         // Retrieve user information from Spotify, this is to store two separate Users's info
         // in redis.
         const userInfo = await spotifyApi.getMe();
-        const userId = userInfo.body.id; // Unique user identifier
-        console.log(userId)
-        console.log(userInfo)
+        const userId = userInfo.body.display_name; // Unique user identifier
         userIds.add(userId);
         // Respond with access token and user ID
         res.json({accessToken: access_token, userId: userId});
