@@ -57,11 +57,18 @@ function App() {
     };
 
     return (
-        <div className="App">
+        <div className="App d-flex flex-column align-items-center justify-content-center vh-100">
+            <div className="text-center p-3">
+                <h1 className="display-4 mb-3">Spotify Music Taste Comparer</h1>
+                <p className="lead">Welcome to the Spotify Music Taste Comparer! Log in to compare your music tastes with another Spotify user.</p>
+            </div>
+            
             {userIds.length === 2 ? (
                 <TracksComponent userData={userIds[0]} otherUserData={userIds[1]}/>
             ) : (
-                <LoginButton length={userIds.length}/>
+                <div className="w-100 d-flex justify-content-center">
+                    <LoginButton length={userIds.length}/>
+                </div>
             )}
         </div>
     );
