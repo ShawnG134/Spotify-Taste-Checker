@@ -1,4 +1,7 @@
 # Spotify Taste Checker
+Example Result
+<img width="979" alt="image" src="https://github.com/ShawnG134/Spotify-Taste-Checker/assets/168505455/83581497-e8ee-469f-b060-0f7cb726231d">
+
 
 ## Overview
 This project is a web application that compares Spotify users' musical tastes using Node.js, React, and ChatGPT API.
