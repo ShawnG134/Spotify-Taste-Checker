@@ -8,20 +8,21 @@ const redis = require('redis');
 const app = express();
 const port = 3001;
 
-// Create a Redis client
 const redisClient = redis.createClient({
-    url: 'redis://localhost:6379' // Adjust this if your Redis configuration is different
+    url: 'redis://localhost:6379'
 });
 redisClient.connect();
-// Clear Redis data on startup
+
+// Clear Redis data on startup, this removes all Users' information.
 redisClient.flushAll()
     .then(() => console.log('Redis data cleared on startup'))
     .catch(err => console.error('Failed to clear Redis on startup:', err));
 
-// Middleware
+
 app.use(cors());
 app.use(bodyParser.json());
 
+// Create your own .env for this.
 const spotifyApi = new SpotifyWebApi({
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -40,11 +41,11 @@ app.get('/login', (req, res) => {
 
 // Spotify callback endpoint
 app.post('/callback', async (req, res) => {
-    const {code} = req.body;
+    const { code } = req.body;
     try {
         console.log("userId");
         const data = await spotifyApi.authorizationCodeGrant(code);
-        const {access_token} = data.body;
+        const { access_token } = data.body;
         spotifyApi.setAccessToken(data.body["access_token"]);
         spotifyApi.setRefreshToken(data.body["refresh_token"])
         // Retrieve user information from Spotify, this is to store two separate Users's info
@@ -53,7 +54,7 @@ app.post('/callback', async (req, res) => {
         const userId = userInfo.body.display_name; // Unique user identifier
         userIds.add(userId);
         // Respond with access token and user ID
-        res.json({accessToken: access_token, userId: userId});
+        res.json({ accessToken: access_token, userId: userId });
     } catch (err) {
         console.error('Error in Spotify authentication:', err);
         res.sendStatus(500);
@@ -80,7 +81,7 @@ app.post('/store-tracks', async (req, res) => {
 
 // Endpoint to store both users
 app.post('/store-users', async (req, res) => {
-    const {tracks, userId} = req.body;
+    const { tracks, userId } = req.body;
     try {
         const key = `user:${userId}:topTracks`; // Unique key for each user
         await redisClient.set(key, JSON.stringify(tracks));
