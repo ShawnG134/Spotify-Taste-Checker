@@ -1,8 +1,12 @@
 # Spotify Taste Checker
-## Exemplary Result from me and my friends.
-<img width="753" alt="image" src="https://github.com/ShawnG134/Spotify-Taste-Checker/assets/168505455/e452a1c0-45d4-445f-9539-9092b5070481">
+## Login Page
+<img width="769" alt="image" src="https://github.com/ShawnG134/Spotify-Taste-Checker/assets/168505455/27db3d50-e06e-4835-88ba-0d0954fe41c7">
 
-<img width="979" alt="image" src="https://github.com/ShawnG134/Spotify-Taste-Checker/assets/168505455/83581497-e8ee-469f-b060-0f7cb726231d">
+
+## Sample between me and my friends.
+<img width="769" alt="image" src="https://github.com/ShawnG134/Spotify-Taste-Checker/assets/168505455/bbe9bf1a-eace-4d47-a5b2-218edc3d22f1">
+
+
 
 
 ## Overview
